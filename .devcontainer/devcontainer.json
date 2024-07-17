@@ -22,16 +22,5 @@
                 "python.linting.enabled": true
             }
         }
-    },
-
-    "portsAttributes": {
-        "4040": {
-            "label": "SparkUI",
-            "onAutoForward": "notify"
-        }
-    },
-
-    "forwardPorts": [
-        4040
-    ]
+    }
 }
