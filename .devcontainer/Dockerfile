@@ -2,8 +2,7 @@ FROM python:3.10
 
 # Install Java
 RUN apt update && \
-    apt install -y sudo && \
-    sudo apt install default-jdk -y
+    apt install -y sudo
 
 # Add non-root user
 ARG USERNAME=nonroot
