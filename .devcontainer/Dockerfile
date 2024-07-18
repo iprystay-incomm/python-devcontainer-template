@@ -23,3 +23,6 @@ RUN pip install -r /tmp/requirements.txt && \
 COPY --chown=nonroot:1000 requirements-dev.txt /tmp/requirements-dev.txt
 RUN pip install -r /tmp/requirements-dev.txt && \
     rm /tmp/requirements-dev.txt
+
+ENV http_proxy=http://172.16.70.2:8888
+ENV https_proxy=http://172.16.70.2:8888
