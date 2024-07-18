@@ -1,12 +1,25 @@
 {
     "build": {
         "dockerfile": "Dockerfile",
-        "context": ".."
+        "context": "..",
+        "args": {
+          "http_proxy": "http://172.16.70.2:8888",
+          "https_proxy": "http://172.16.70.2:8888",
+          "HTTP_PROXY": "http://172.16.70.2:8888",
+          "HTTPS_PROXY": "http://172.16.70.2:8888"
+        }
     },
 
     "remoteUser": "nonroot",
 
     "customizations": {
+        "jetbrains": {
+            "settings": {
+                "Docker:app:DockerSettings.dockerComposePath": "docker",
+                "Docker:app:DockerSettings.dockerPath": "docker",
+                "com.intellij:app:BuiltInServerOptions.builtInServerPort": 58787
+            }
+        },
         "vscode": {
             "extensions": [
                 "ms-python.python"
