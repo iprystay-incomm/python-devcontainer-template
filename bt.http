@@ -1,0 +1,68 @@
+@baseUrl = https://passwordvault.incomm.com/BeyondTrust/api/public/v3/
+
+# @name login
+POST {{baseUrl}}Auth/SignAppIn HTTP/1.1
+Content-Type: application/json
+Authorization: PS-Auth key={{apikey}}; runas={{user}};
+
+###
+
+# @name domainManagedAccounts
+
+GET {{baseUrl}}ManagedAccounts?SystemName=PasswordVault HTTP/1.1
+Content-Type: application/json
+Authorization: PS-Auth key={{apikey}}; runas={{user}};
+
+> {%
+    const svcAcctSysId = response.body.$[0].SystemId;
+    const svcAcctId = response.body.$[0].AccountId;
+    // client.global.set("svcAcctSysId", response.body.$[0].SystemId);
+    // client.global.set("svcAcctId", response.body.$[0].AccountId);
+%}
+###
+
+POST {{baseUrl}}Requests HTTP/1.1
+Content-Type: application/json
+Authorization: PS-Auth key={{apikey}}; runas={{user}};
+
+{
+    "AccessTypes": "View",
+    "SystemID": "{{svcAcctSysId}}",
+    "AccountID": "{{svcAcctId}}",
+    "DurationMinutes": "20",
+    "Reason": "API_CheckOut",
+    "RotateInCheckin": "False"
+}
+
+###
+
+# @name requestIdResults
+
+GET {{baseUrl}}Requests
+Content-Type: application/json
+Authorization: PS-Auth key={{apikey}}; runas={{user}};
+
+###
+> {% const requestId = response.body.$[0].RequestID; %}
+
+# @name password
+
+GET {{baseUrl}}Credentials/{{requestId}}?type=password
+Content-Type: application/json
+Authorization: PS-Auth key={{apikey}}; runas={{user}};
+
+###
+
+PUT {{baseUrl}}Requests/{{requestId}}/Checkin
+Content-Type: application/json
+Authorization: PS-Auth key={{apikey}}; runas={{user}};
+
+{
+    "Reason": "CheckOutReason"
+}
+
+###
+
+POST {{baseUrl}}Auth/Signout
+Content-Type: application/json
+Authorization: PS-Auth key={{apikey}}; runas={{user}}; 

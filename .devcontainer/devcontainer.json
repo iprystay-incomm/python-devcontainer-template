@@ -7,6 +7,13 @@
     "remoteUser": "nonroot",
 
     "customizations": {
+        "jetbrains": {
+            "settings": {
+                "Docker:app:DockerSettings.dockerComposePath": "docker",
+                "Docker:app:DockerSettings.dockerPath": "docker",
+                "com.intellij:app:BuiltInServerOptions.builtInServerPort": 58787
+            }
+        },
         "vscode": {
             "extensions": [
                 "ms-python.python"
