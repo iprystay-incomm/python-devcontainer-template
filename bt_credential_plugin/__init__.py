@@ -50,6 +50,7 @@ def bt_lookup( **kwargs ):
     identifier = kwargs.get('identifier')
     verify_ssl = kwargs.get('verify_ssl')
     connect_direct = kwargs.get('connect_direct')
+    debug_out = kwargs.get('debug_out')
 
     if not verify_ssl:
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -78,6 +79,9 @@ def bt_lookup( **kwargs ):
     with requests.Session() as session:
         session.mount('https://', HostHeaderSSLAdapter())
         session.headers.update(headers)
+        if debug_out:
+            with open("cred_plugin.debug", "w") as f:
+                f.write(f'baseurl: {baseurl}\ntoken: {token}\nidentifier:{identifier}\nconnect_direct: {connect_direct}')
         if not connect_direct:
             https_proxy = 'http://172.16.70.2:8888'
             session.proxies.update({ 'https': https_proxy })
@@ -143,6 +147,11 @@ bt_plugin = CredentialPlugin(
             'label': 'Direct Connection',
             'type': 'boolean',
             'default': True,
+        }, {
+            'id': 'debug_out',
+            'label': 'Debug',
+            'type': 'boolean',
+            'default': False,
         }],
         'metadata': [{
             'id': 'identifier',
