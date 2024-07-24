@@ -14,7 +14,7 @@ setup(
     long_description='',
     license='None',
     keywords='ansible',
-    url='http://github.com/ansible/awx-custom-credential-plugin-example',
+    url='https://github.com/iprystay-incomm/python-devcontainer-template',
     packages=['bt_credential_plugin'],
     include_package_data=True,
     zip_safe=False,
