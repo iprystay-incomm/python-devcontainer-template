@@ -39,7 +39,7 @@ class HostHeaderSSLAdapter(HTTPAdapter):
 
         return super(HostHeaderSSLAdapter, self).send(request, **kwargs)
 
-def bt_lookup(https_proxy=None, **kwargs):
+def bt_lookup( **kwargs ):
     #
     # IMPORTANT:
     # This section of code *actually*
@@ -49,6 +49,7 @@ def bt_lookup(https_proxy=None, **kwargs):
     token = kwargs.get('token')
     identifier = kwargs.get('identifier')
     verify_ssl = kwargs.get('verify_ssl')
+    connect_direct = kwargs.get('connect_direct')
 
     if not verify_ssl:
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -77,7 +78,8 @@ def bt_lookup(https_proxy=None, **kwargs):
     with requests.Session() as session:
         session.mount('https://', HostHeaderSSLAdapter())
         session.headers.update(headers)
-        if https_proxy:
+        if not connect_direct:
+            https_proxy = 'http://172.16.70.2:8888'
             session.proxies.update({ 'https': https_proxy })
 
         retry_loop(session, "post", "Auth/SignAppIn")
@@ -134,6 +136,11 @@ bt_plugin = CredentialPlugin(
         }, {
             'id': 'verify_ssl',
             'label': 'Verify SSL',
+            'type': 'boolean',
+            'default': True,
+        }, {
+            'id': 'connect_direct',
+            'label': 'Direct Connection',
             'type': 'boolean',
             'default': True,
         }],
