@@ -4,7 +4,6 @@ from requests.adapters import HTTPAdapter
 import urllib3
 import time
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 CredentialPlugin = collections.namedtuple('CredentialPlugin', ['name', 'inputs', 'backend'])
 
 class HostHeaderSSLAdapter(HTTPAdapter):
@@ -49,6 +48,10 @@ def bt_lookup(https_proxy=None, **kwargs):
     baseurl = kwargs.get('url')
     token = kwargs.get('token')
     identifier = kwargs.get('identifier')
+    verify_ssl = kwargs.get('verify_ssl')
+
+    if not verify_ssl:
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
     headers = { 'Authorization': f'PS-Auth key={token}; runas={identifier}',
                 'Content-Type': 'application/json; odata=verbose',
@@ -59,7 +62,7 @@ def bt_lookup(https_proxy=None, **kwargs):
             data = {}
         counter = 1
         while True:
-            r = s.request(method, url=f'{baseurl}{url}', json=data, verify=False)
+            r = s.request(method, url=f'{baseurl}{url}', json=data, verify=verify_ssl)
             if 200 <= r.status_code <= 226 or r.status_code == 409:
                 return r
             else:
@@ -122,11 +125,17 @@ bt_plugin = CredentialPlugin(
             'id': 'url',
             'label': 'BeyondTrust Server URL',
             'type': 'string',
+            'default': 'https://passwordvault.incomm.com/BeyondTrust/api/public/v3/',
         }, {
             'id': 'token',
             'label': 'Authentication Token',
             'type': 'string',
             'secret': True,
+        }, {
+            'id': 'verify_ssl',
+            'label': 'Verify SSL',
+            'type': 'boolean',
+            'default': True,
         }],
         'metadata': [{
             'id': 'identifier',
