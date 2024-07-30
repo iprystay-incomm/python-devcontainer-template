@@ -212,7 +212,7 @@ bt_plugin = CredentialPlugin(
             'type': 'boolean',
             'default': True,
         }],
-        'required': ['url', 'token', 'identifier'],
+        'required': ['url', 'token', 'identifier', 'use_cache'],
     },
     backend = bt_lookup
 )
