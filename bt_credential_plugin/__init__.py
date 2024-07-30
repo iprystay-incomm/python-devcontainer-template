@@ -46,6 +46,44 @@ class HostHeaderSSLAdapter(HTTPAdapter):
 
         return super(HostHeaderSSLAdapter, self).send(request, **kwargs)
 
+bt_plugin_inputs = {
+    'fields': [{
+            'id': 'url',
+            'label': 'BeyondTrust Server URL',
+            'type': 'string',
+            'default': 'https://passwordvault.incomm.com/BeyondTrust/api/public/v3/',
+        }, {
+            'id': 'token',
+            'label': 'Authentication Token',
+            'type': 'string',
+            'secret': True,
+        }, {
+            'id': 'verify_ssl',
+            'label': 'Verify SSL',
+            'type': 'boolean',
+            'default': True,
+        }, {
+            'id': 'connect_direct',
+            'label': 'Direct Connection',
+            'type': 'boolean',
+            'default': True,
+        }],
+        'metadata': [{
+            'id': 'identifier',
+            'label': 'Service Name Identifier',
+            'type': 'string',
+            'help_text': 'Service Name Identifier in BeyondTrust System.'
+        }, {
+            'id': 'use_cache',
+            'label': 'Use cached information',
+            'type': 'string',
+            'choices': ['Utilize cached data', 'Do direct query to BT backend'],
+            'help_text': 'Use cached data or always do direct query',
+            'default': 'Utilize cached data',
+        }],
+        'required': ['url', 'token', 'identifier'],
+}
+
 def bt_lookup( **kwargs ):
     baseurl = kwargs.get('url')
     token = kwargs.get('token')
@@ -74,7 +112,7 @@ def bt_lookup( **kwargs ):
     fernet = Fernet(base64.urlsafe_b64encode(token[:32].encode()))
     password = None
 
-    if use_cache:
+    if use_cache == 'Utilize cached data':
         try:
             try:
                 lock.acquire(timeout=60)  # wait up to 60 seconds
@@ -111,7 +149,6 @@ def bt_lookup( **kwargs ):
             lock.release()
         except FileNotFoundError:
             pass
-
 
     if not password:
         if not verify_ssl:
@@ -160,7 +197,7 @@ def bt_lookup( **kwargs ):
             response = retry_loop(session, "get", f'Credentials/{request_id}?type=password')
             password = response.text.strip('\"')
 
-            if use_cache:
+            if use_cache == 'Utilize cached data':
                 try:
                     lock.acquire(timeout=5)  # wait up to 60 seconds
                     account['password'] = (fernet.encrypt(password.encode())).decode()
@@ -179,53 +216,6 @@ def bt_lookup( **kwargs ):
 
 bt_plugin = CredentialPlugin(
     'BT AWX Credential Plugin',
-    inputs={
-        'fields': [{
-            'id': 'url',
-            'label': 'BeyondTrust Server URL',
-            'type': 'string',
-            'default': 'https://passwordvault.incomm.com/BeyondTrust/api/public/v3/',
-        }, {
-            'id': 'token',
-            'label': 'Authentication Token',
-            'type': 'string',
-            'secret': True,
-        }, {
-            'id': 'verify_ssl',
-            'label': 'Verify SSL',
-            'type': 'boolean',
-            'default': True,
-        }, {
-            'id': 'connect_direct',
-            'label': 'Direct Connection',
-            'type': 'boolean',
-            'default': True,
-        }, {
-            'id': 'drop_test',
-            'label': 'API2 Version',
-            'choices': ['v1', 'v2'],
-            'help_text': 'API v1 is for static key/value lookups.  API v2 is for versioned key/value lookups.',
-            'default': 'v1',
-        }],
-        'metadata': [{
-            'id': 'identifier',
-            'label': 'Service Name Identifier',
-            'type': 'string',
-            'help_text': 'Service Name Identifier in BeyondTrust System.'
-        }, {
-            'id': 'test_str',
-            'label': 'Cache response',
-            'type': 'string',
-            'help_text': 'Cache or not cache'
-        }, {
-            'id': 'api_version',
-            'label': 'API Version',
-            'type': 'string',
-            'choices': ['v1', 'v2'],
-            'help_text': 'API v1 is for static key/value lookups.  API v2 is for versioned key/value lookups.',
-            'default': 'v1',
-        }],
-        'required': ['url', 'token', 'identifier', 'test_str'],
-    },
+    inputs = bt_plugin_inputs,
     backend = bt_lookup
 )

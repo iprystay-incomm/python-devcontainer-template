@@ -6,5 +6,5 @@ url = 'https://passwordvault.incomm.com/BeyondTrust/api/public/v3/'
 identifier = 'incommide\SVC-plateng-aap-ide'
 # identifier = 'incommrde\SVC-plateng-aap-rde'
 
-print(bt_plugin.backend(url=url, token=token, identifier=identifier, verify_ssl=False, use_cache=True))
+print(bt_plugin.backend(url=url, token=token, identifier=identifier, verify_ssl=False, use_cache='Utilize cached data'))
 # print(bt_plugin.backend(url=url, token=token, identifier=identifier))
