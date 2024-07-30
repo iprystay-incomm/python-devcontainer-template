@@ -133,3 +133,5 @@ dmypy.json
 
 # JetBrain
 .idea
+
+.bt_credential_*
