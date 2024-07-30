@@ -6,11 +6,12 @@ import urllib3
 import time
 import json
 from cryptography.fernet import Fernet, InvalidToken
-from lockfile import LockFile
+from lockfile import LockFile, LockTimeout
 
 
+cache_file_path = ".bt_credential_plugin_cache"
 CredentialPlugin = collections.namedtuple('CredentialPlugin', ['name', 'inputs', 'backend'])
-lock = LockFile("bt_credential_plugin_cache.lock")
+lock = LockFile(cache_file_path)
 
 class HostHeaderSSLAdapter(HTTPAdapter):
     def resolve(self, hostname):
@@ -51,7 +52,7 @@ def bt_lookup( **kwargs ):
     identifier = kwargs.get('identifier')
     verify_ssl = kwargs.get('verify_ssl')
     connect_direct = kwargs.get('connect_direct')
-    debug_out = kwargs.get('debug_out')
+    use_cache = kwargs.get('use_cache')
 
     def retry_loop(s, method, url, data=None, max_tries=5):
         if data is None:
@@ -70,42 +71,47 @@ def bt_lookup( **kwargs ):
                     counter += 1
                     time.sleep(5)
 
-    if debug_out:
-        with open("cred_plugin.debug", "w") as f:
-            f.write(f'baseurl: {baseurl}\ntoken: {token}\nidentifier:{identifier}\nconnect_direct: {connect_direct}')
-
     fernet = Fernet(base64.urlsafe_b64encode(token[:32].encode()))
     password = None
 
-    try:
-        with open("myfile.txt", 'r+') as fp:
-            lines = []
+    if use_cache:
+        try:
+            try:
+                lock.acquire(timeout=60)  # wait up to 60 seconds
+            except LockTimeout:
+                lock.break_lock()
+                lock.acquire()
 
-            for line in fp:
-                line = line.strip()
-                record = json.loads(line)
-                # print(f'{record}\n')
-                exp_date = record.get('next_change_date')
-                exp_datetime = time.mktime(time.strptime(exp_date, "%Y-%m-%dT%H:%M:%S"))
-                now =time.time()
-                if exp_datetime > now:
-                    lines.append(f'{line}\n')
-                    if record.get('account_name').lower() == identifier.split('\\')[-1].lower():
-                        try:
-                            password = fernet.decrypt(record.get('password')).decode()
-                            #     password decrypted
-                        except InvalidToken:
-                            pass
-                            # print('invalid token for a record')
-                else:
-                    pass
-                    # print('record expired - deleting from cache')
-            fp.seek(0)
-            for line in lines:
-                fp.write(line)
-            fp.truncate()
-    except FileNotFoundError:
-        pass
+            with open(cache_file_path, 'r+') as fp:
+                lines = []
+
+                for line in fp:
+                    line = line.strip()
+                    record = json.loads(line)
+                    # print(f'{record}\n')
+                    exp_date = record.get('next_change_date')
+                    exp_datetime = time.mktime(time.strptime(exp_date, "%Y-%m-%dT%H:%M:%S"))
+                    now =time.time()
+                    if exp_datetime > now:
+                        lines.append(f'{line}\n')
+                        if record.get('account_name').lower() == identifier.split('\\')[-1].lower():
+                            try:
+                                password = fernet.decrypt(record.get('password')).decode()
+                                #     password decrypted
+                            except InvalidToken:
+                                pass
+                                # print('invalid token for a record')
+                    else:
+                        pass
+                        # print('record expired - deleting from cache')
+                fp.seek(0)
+                for line in lines:
+                    fp.write(line)
+                fp.truncate()
+            lock.release()
+        except FileNotFoundError:
+            pass
+
 
     if not password:
         if not verify_ssl:
@@ -154,11 +160,16 @@ def bt_lookup( **kwargs ):
             response = retry_loop(session, "get", f'Credentials/{request_id}?type=password')
             password = response.text.strip('\"')
 
-            account['password'] = (fernet.encrypt(password.encode())).decode()
-
-            new_record = json.dumps(account)
-            with open("myfile.txt", 'a') as fp:
-                fp.write(f'{new_record}\n')
+            if use_cache:
+                try:
+                    lock.acquire(timeout=5)  # wait up to 60 seconds
+                    account['password'] = (fernet.encrypt(password.encode())).decode()
+                    new_record = json.dumps(account)
+                    with open(cache_file_path, 'a') as fp:
+                        fp.write(f'{new_record}\n')
+                    lock.release()
+                except LockTimeout:
+                    pass
 
             data = { "Reason": "CheckOutReason" }
             retry_loop(session, "put", f'Requests/{request_id}/Checkin', data=data)
@@ -189,17 +200,17 @@ bt_plugin = CredentialPlugin(
             'label': 'Direct Connection',
             'type': 'boolean',
             'default': True,
-        }, {
-            'id': 'debug_out',
-            'label': 'Debug',
-            'type': 'boolean',
-            'default': False,
         }],
         'metadata': [{
             'id': 'identifier',
             'label': 'Service Name Identifier',
             'type': 'string',
             'help_text': 'Service Name Identifier in BeyondTrust System.'
+        }, {
+            'id': 'use_cache',
+            'label': 'Cache response',
+            'type': 'boolean',
+            'default': True,
         }],
         'required': ['url', 'token', 'identifier'],
     },
