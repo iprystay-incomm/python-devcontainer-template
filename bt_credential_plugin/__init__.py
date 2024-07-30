@@ -59,12 +59,17 @@ bt_plugin_inputs = {
             'secret': True,
         }, {
             'id': 'verify_ssl',
-            'label': 'Verify SSL',
+            'label': 'Verify SSL Certificates',
             'type': 'boolean',
             'default': True,
         }, {
             'id': 'connect_direct',
             'label': 'Direct Connection',
+            'type': 'boolean',
+            'default': True,
+        }, {
+            'id': 'use_cache',
+            'label': 'Use response cache',
             'type': 'boolean',
             'default': True,
         }],
@@ -84,7 +89,7 @@ def bt_lookup( **kwargs ):
     verify_ssl = kwargs.get('verify_ssl')
     connect_direct = kwargs.get('connect_direct')
     # use_cache = True if kwargs.get('use_cache')=='Utilize cached data' else False
-    use_cache = True
+    use_cache = kwargs.get('use_cache')
 
     def retry_loop(s, method, url, data=None, max_tries=5):
         if data is None:
