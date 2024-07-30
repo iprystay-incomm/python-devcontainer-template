@@ -73,14 +73,7 @@ bt_plugin_inputs = {
             'label': 'Service Name Identifier',
             'type': 'string',
             'help_text': 'Service Name Identifier in BeyondTrust System.'
-        }, {
-            'id': 'use_cache',
-            'label': 'Use cached information',
-            'type': 'string',
-            'choices': ['Utilize cached data', 'Do direct query to BT backend'],
-            'help_text': 'Use cached data or always do direct query'
-        },
-        {'id': 'object_query_format', 'label': 'Object Query Format', 'type': 'string', 'default': 'Exact', 'choices': ['Exact', 'Regexp']}],
+        }],
         'required': ['url', 'token', 'identifier'],
 }
 
@@ -90,7 +83,8 @@ def bt_lookup( **kwargs ):
     identifier = kwargs.get('identifier')
     verify_ssl = kwargs.get('verify_ssl')
     connect_direct = kwargs.get('connect_direct')
-    use_cache = True if kwargs.get('use_cache')=='Utilize cached data' else False
+    # use_cache = True if kwargs.get('use_cache')=='Utilize cached data' else False
+    use_cache = True
 
     def retry_loop(s, method, url, data=None, max_tries=5):
         if data is None:
