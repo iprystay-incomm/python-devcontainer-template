@@ -133,7 +133,7 @@ def bt_lookup( **kwargs ):
                         lines.append(f'{line}\n')
                         if record.get('account_name').lower() == identifier.split('\\')[-1].lower():
                             try:
-                                password = fernet.decrypt(record.get('password')).decode()
+                                password = fernet.decrypt(record.get('password').encode()).decode()
                                 #     password decrypted
                             except InvalidToken:
                                 pass
@@ -148,6 +148,9 @@ def bt_lookup( **kwargs ):
             lock.release()
         except FileNotFoundError:
             pass
+        except Exception:
+            lock.release()
+            raise
 
     if not password:
         if not verify_ssl:
