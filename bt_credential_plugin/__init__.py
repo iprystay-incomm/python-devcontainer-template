@@ -207,12 +207,13 @@ bt_plugin = CredentialPlugin(
             'type': 'string',
             'help_text': 'Service Name Identifier in BeyondTrust System.'
         }, {
-            'id': 'use_cache',
+            'id': 'test_str',
             'label': 'Cache response',
-            'type': 'boolean',
-            'default': True,
+            'type': 'string',
+            'default': 'test string',
+            'help_text': 'Cache or not cache'
         }],
-        'required': ['url', 'token', 'identifier', 'use_cache'],
+        'required': ['url', 'token', 'identifier', 'test_str'],
     },
     backend = bt_lookup
 )
