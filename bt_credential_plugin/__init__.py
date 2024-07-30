@@ -78,8 +78,7 @@ bt_plugin_inputs = {
             'label': 'Use cached information',
             'type': 'string',
             'choices': ['Utilize cached data', 'Do direct query to BT backend'],
-            'help_text': 'Use cached data or always do direct query',
-            'default': 'Utilize cached data',
+            'help_text': 'Use cached data or always do direct query'
         }],
         'required': ['url', 'token', 'identifier'],
 }
@@ -90,7 +89,7 @@ def bt_lookup( **kwargs ):
     identifier = kwargs.get('identifier')
     verify_ssl = kwargs.get('verify_ssl')
     connect_direct = kwargs.get('connect_direct')
-    use_cache = kwargs.get('use_cache')
+    use_cache = True if kwargs.get('use_cache')=='Utilize cached data' else False
 
     def retry_loop(s, method, url, data=None, max_tries=5):
         if data is None:
@@ -112,7 +111,7 @@ def bt_lookup( **kwargs ):
     fernet = Fernet(base64.urlsafe_b64encode(token[:32].encode()))
     password = None
 
-    if use_cache == 'Utilize cached data':
+    if use_cache:
         try:
             try:
                 lock.acquire(timeout=60)  # wait up to 60 seconds
@@ -197,7 +196,7 @@ def bt_lookup( **kwargs ):
             response = retry_loop(session, "get", f'Credentials/{request_id}?type=password')
             password = response.text.strip('\"')
 
-            if use_cache == 'Utilize cached data':
+            if use_cache:
                 try:
                     lock.acquire(timeout=5)  # wait up to 60 seconds
                     account['password'] = (fernet.encrypt(password.encode())).decode()
