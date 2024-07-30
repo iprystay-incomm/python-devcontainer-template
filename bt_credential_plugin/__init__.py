@@ -200,6 +200,12 @@ bt_plugin = CredentialPlugin(
             'label': 'Direct Connection',
             'type': 'boolean',
             'default': True,
+        }, {
+            'id': 'drop_test',
+            'label': 'API2 Version',
+            'choices': ['v1', 'v2'],
+            'help_text': 'API v1 is for static key/value lookups.  API v2 is for versioned key/value lookups.',
+            'default': 'v1',
         }],
         'metadata': [{
             'id': 'identifier',
@@ -210,8 +216,14 @@ bt_plugin = CredentialPlugin(
             'id': 'test_str',
             'label': 'Cache response',
             'type': 'string',
-            'default': 'test string',
             'help_text': 'Cache or not cache'
+        }, {
+            'id': 'api_version',
+            'label': 'API Version',
+            'type': 'string',
+            'choices': ['v1', 'v2'],
+            'help_text': 'API v1 is for static key/value lookups.  API v2 is for versioned key/value lookups.',
+            'default': 'v1',
         }],
         'required': ['url', 'token', 'identifier', 'test_str'],
     },
