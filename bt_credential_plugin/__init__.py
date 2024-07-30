@@ -79,7 +79,8 @@ bt_plugin_inputs = {
             'type': 'string',
             'choices': ['Utilize cached data', 'Do direct query to BT backend'],
             'help_text': 'Use cached data or always do direct query'
-        }],
+        },
+        {'id': 'object_query_format', 'label': 'Object Query Format', 'type': 'string', 'default': 'Exact', 'choices': ['Exact', 'Regexp']}],
         'required': ['url', 'token', 'identifier'],
 }
 
