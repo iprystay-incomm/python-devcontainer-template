@@ -1,5 +1,7 @@
 import base64
 import collections
+import os
+
 import requests
 from requests.adapters import HTTPAdapter
 import urllib3
@@ -119,6 +121,7 @@ def bt_lookup( **kwargs ):
                 lock.break_lock()
                 lock.acquire()
 
+            os.chmod(cache_file_path, 0o600)
             with open(cache_file_path, 'r+') as fp:
                 lines = []
 
@@ -145,6 +148,7 @@ def bt_lookup( **kwargs ):
                 for line in lines:
                     fp.write(line)
                 fp.truncate()
+            os.chmod(cache_file_path, 0o400)
             lock.release()
         except FileNotFoundError:
             pass
@@ -204,8 +208,13 @@ def bt_lookup( **kwargs ):
                     lock.acquire(timeout=5)  # wait up to 60 seconds
                     account['password'] = (fernet.encrypt(password.encode())).decode()
                     new_record = json.dumps(account)
+                    try:
+                        os.chmod(cache_file_path, 0o600)
+                    except FileNotFoundError:
+                        pass
                     with open(cache_file_path, 'a') as fp:
                         fp.write(f'{new_record}\n')
+                    os.chmod(cache_file_path, 0o400)
                     lock.release()
                 except LockTimeout:
                     pass
@@ -215,6 +224,7 @@ def bt_lookup( **kwargs ):
 
             retry_loop(session, "post", 'Auth/Signout')
     return password
+
 
 bt_plugin = CredentialPlugin(
     'BT AWX Credential Plugin',
