@@ -60,16 +60,6 @@ bt_plugin_inputs = {
             'type': 'string',
             'secret': True,
         }, {
-            'id': 'verify_ssl',
-            'label': 'Verify SSL Certificates',
-            'type': 'boolean',
-            'default': True,
-        }, {
-            'id': 'connect_direct',
-            'label': 'Direct Connection',
-            'type': 'boolean',
-            'default': True,
-        }, {
             'id': 'use_cache',
             'label': 'Use response cache',
             'type': 'boolean',
@@ -88,7 +78,8 @@ def bt_lookup( **kwargs ):
     baseurl = kwargs.get('url')
     token = kwargs.get('token')
     identifier = kwargs.get('identifier')
-    verify_ssl = kwargs.get('verify_ssl')
+    # verify_ssl = kwargs.get('verify_ssl')
+    verify_ssl = True
     connect_direct = kwargs.get('connect_direct')
     use_cache = kwargs.get('use_cache')
 
@@ -161,7 +152,7 @@ def bt_lookup( **kwargs ):
         with requests.Session() as session:
             session.mount('https://', HostHeaderSSLAdapter())
             session.headers.update(headers)
-            if not connect_direct:
+            if connect_direct is False:
                 https_proxy = 'http://172.16.70.2:8888'
                 session.proxies.update({ 'https': https_proxy })
 
