@@ -7,9 +7,9 @@ requirements = []  # add Python dependencies here
 
 setup(
     name='bt-credential-plugin',
-    version='0.1',
-    author='Ansible, Inc.',
-    author_email='info@ansible.com',
+    version='0.2',
+    author='Ihor Prystay',
+    author_email='iprystay@incomm.com',
     description='BeyondTrust Credential lookup plugin for AAP',
     long_description='',
     license='None',

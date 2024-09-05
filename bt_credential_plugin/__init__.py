@@ -90,7 +90,6 @@ def bt_lookup( **kwargs ):
     identifier = kwargs.get('identifier')
     verify_ssl = kwargs.get('verify_ssl')
     connect_direct = kwargs.get('connect_direct')
-    # use_cache = True if kwargs.get('use_cache')=='Utilize cached data' else False
     use_cache = kwargs.get('use_cache')
 
     def retry_loop(s, method, url, data=None, max_tries=5):
@@ -128,7 +127,6 @@ def bt_lookup( **kwargs ):
                 for line in fp:
                     line = line.strip()
                     record = json.loads(line)
-                    # print(f'{record}\n')
                     exp_date = record.get('next_change_date')
                     exp_datetime = time.mktime(time.strptime(exp_date, "%Y-%m-%dT%H:%M:%S"))
                     now =time.time()
@@ -137,13 +135,10 @@ def bt_lookup( **kwargs ):
                         if record.get('account_name').lower() == identifier.split('\\')[-1].lower():
                             try:
                                 password = fernet.decrypt(record.get('password').encode()).decode()
-                                #     password decrypted
                             except InvalidToken:
                                 pass
-                                # print('invalid token for a record')
                     else:
                         pass
-                        # print('record expired - deleting from cache')
                 fp.seek(0)
                 for line in lines:
                     fp.write(line)

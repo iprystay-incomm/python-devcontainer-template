@@ -4,8 +4,6 @@
         "context": ".."
     },
 
-    "remoteUser": "nonroot",
-
     "customizations": {
         "jetbrains": {
             "settings": {
